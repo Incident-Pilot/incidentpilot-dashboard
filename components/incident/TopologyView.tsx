@@ -8,7 +8,7 @@ export function TopologyView({ topology }: { topology: Record<string, string[]> 
       </h3>
       {services.length === 0 ? (
         <p className="mt-2 text-sm text-text-secondary">
-          No topology data for this incident's services yet.
+          No topology data for this incident&rsquo;s services yet.
         </p>
       ) : (
         <ul className="mt-2 space-y-1">

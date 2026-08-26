@@ -1,10 +1,18 @@
-import type { Investigation } from "@/types";
+import type { Investigation, InvestigationPhase } from "@/types";
 
 function Section({ title }: { title: string }) {
   return (
     <h3 className="text-xs font-semibold uppercase tracking-wide text-accent-muted">{title}</h3>
   );
 }
+
+const IN_PROGRESS_PHASES: InvestigationPhase[] = [
+  "DETECTED",
+  "INVESTIGATING",
+  "HYPOTHESIS_GENERATED",
+  "VERIFYING",
+  "VERIFICATION_FAILED",
+];
 
 export function RootCauseCard({
   investigation,
@@ -27,68 +35,122 @@ export function RootCauseCard({
       <div className="rounded-lg border border-border bg-surface-2 p-4">
         <Section title="Root cause" />
         <p className="mt-2 text-sm text-text-secondary">
-          No investigation data available yet. The Intelligence Plane's read API isn't wired up
-          in this build — once it is, a root-cause hypothesis will appear here automatically.
+          No investigation data available yet. The Intelligence Plane&rsquo;s read API isn&rsquo;t
+          wired up in this build — once it is, a root-cause hypothesis will appear here
+          automatically.
         </p>
       </div>
     );
   }
 
-  const confidencePct = Math.round(investigation.confidence * 100);
+  const { phase, hypothesis, rejected_hypotheses_count, iteration, reasoning_summary } =
+    investigation;
 
+  if (IN_PROGRESS_PHASES.includes(phase)) {
+    return (
+      <div className="rounded-lg border border-border bg-surface-2 p-4">
+        <div className="flex items-center justify-between">
+          <Section title="Root cause" />
+          <span className="inline-flex items-center rounded-full border border-border bg-surface-1 px-2.5 py-0.5 text-xs font-medium text-text-secondary">
+            Investigation in progress
+          </span>
+        </div>
+
+        <p className="mt-2 text-sm text-text-secondary">
+          {hypothesis
+            ? `Leading hypothesis (round ${iteration}): ${hypothesis.description}`
+            : `Still gathering evidence (round ${iteration}) — no hypothesis yet.`}
+        </p>
+        {hypothesis && (
+          <div className="mt-4 text-xs text-text-secondary">
+            <span className="font-medium text-text-primary">
+              {Math.round(hypothesis.confidence * 100)}%
+            </span>{" "}
+            confidence so far
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (phase === "ESCALATED") {
+    return (
+      <div className="rounded-lg border border-warning-bg bg-surface-2 p-4">
+        <div className="flex items-center justify-between">
+          <Section title="Root cause" />
+          <span className="inline-flex items-center rounded-full border border-warning-bg bg-warning-bg px-2.5 py-0.5 text-xs font-medium text-warning-text">
+            Escalated — no root cause confirmed
+          </span>
+        </div>
+
+        <p className="mt-2 text-sm text-text-primary">
+          {rejected_hypotheses_count} hypothes{rejected_hypotheses_count === 1 ? "is" : "es"}{" "}
+          tried across {iteration} round{iteration === 1 ? "" : "s"}; none survived verification.
+        </p>
+
+        {hypothesis && (
+          <div className="mt-3">
+            <div className="text-xs font-medium text-text-secondary">
+              Last hypothesis considered
+            </div>
+            <p className="mt-1 text-sm text-text-primary">{hypothesis.description}</p>
+          </div>
+        )}
+
+        <p className="mt-3 text-xs text-text-secondary">{reasoning_summary}</p>
+
+        <p className="mt-3 text-xs italic text-text-secondary">
+          The read API only reports a rejected-hypothesis count, not the individual hypotheses or
+          their rejection reasons — that detail exists in the agent&rsquo;s trajectory data but
+          isn&rsquo;t exposed here yet.
+        </p>
+      </div>
+    );
+  }
+
+  // phase === "ROOT_CAUSE_CONFIRMED"
   return (
     <div className="rounded-lg border border-accent-border bg-surface-2 p-4">
       <div className="flex items-center justify-between">
         <Section title="Root cause" />
-        {investigation.verification_verdict && (
-          <span
-            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${
-              investigation.verification_verdict === "CONFIRMED"
-                ? "border-accent-border bg-accent-bg text-accent-text"
-                : "border-danger-bg bg-danger-bg text-danger-text"
-            }`}
-          >
-            {investigation.verification_verdict === "CONFIRMED" ? "Confirmed" : "Rejected"}
-          </span>
-        )}
+        <span className="inline-flex items-center rounded-full border border-success-bg bg-success-bg px-2.5 py-0.5 text-xs font-medium text-success-text">
+          Confirmed
+        </span>
       </div>
 
-      <p className="mt-2 text-sm text-text-primary">{investigation.root_cause}</p>
+      {hypothesis && (
+        <>
+          <p className="mt-2 text-sm text-text-primary">{hypothesis.description}</p>
 
-      {investigation.causal_chain.length > 0 && (
-        <ol className="mt-3 space-y-1 border-l-2 border-accent-border pl-3">
-          {investigation.causal_chain.map((step, i) => (
-            <li key={i} className="text-xs text-text-secondary">
-              {step}
-            </li>
-          ))}
-        </ol>
-      )}
-
-      <div className="mt-4 flex flex-wrap gap-4 text-xs text-text-secondary">
-        <div>
-          <span className="font-medium text-text-primary">{confidencePct}%</span> confidence
-        </div>
-        <div>
-          <span className="font-medium text-text-primary">{investigation.iteration_count}</span>{" "}
-          iteration{investigation.iteration_count === 1 ? "" : "s"}
-        </div>
-      </div>
-
-      {investigation.supporting_evidence_ids.length > 0 && (
-        <div className="mt-3">
-          <div className="text-xs font-medium text-text-secondary">Supporting evidence</div>
-          <div className="mt-1 flex flex-wrap gap-1">
-            {investigation.supporting_evidence_ids.map((id) => (
-              <span
-                key={id}
-                className="rounded border border-border bg-surface-1 px-1.5 py-0.5 font-mono text-[11px] text-text-secondary"
-              >
-                {id}
-              </span>
-            ))}
+          <div className="mt-4 flex flex-wrap gap-4 text-xs text-text-secondary">
+            <div>
+              <span className="font-medium text-text-primary">
+                {Math.round(hypothesis.confidence * 100)}%
+              </span>{" "}
+              confidence
+            </div>
+            <div>
+              <span className="font-medium text-text-primary">{iteration}</span> iteration
+              {iteration === 1 ? "" : "s"}
+            </div>
           </div>
-        </div>
+
+          {hypothesis.supporting_evidence.length > 0 && (
+            <div className="mt-3">
+              <div className="text-xs font-medium text-text-secondary">Supporting evidence</div>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {hypothesis.supporting_evidence.map((id) => (
+                  <span
+                    key={id}
+                    className="rounded border border-border bg-surface-1 px-1.5 py-0.5 font-mono text-[11px] text-text-secondary"
+                  >
+                    {id}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
