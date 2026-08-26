@@ -1,37 +1,51 @@
 // Server-only client for the Intelligence Plane's read API
-// (incident-pilot-agent). That API does not exist yet (build prompt,
-// Section 1/5) — GET /investigations/{incident_id} is planned but not
-// built. Phase 1 always returns null so the dashboard renders an honest
-// "no investigation data available yet" state instead of an error or a
-// fake placeholder.
+// (incident-pilot-agent). Mirrors lib/gateway.ts's pattern: server-side
+// only, Bearer auth, `cache: "no-store"`, typed error classes.
 //
-// Phase 2: once incident-pilot-agent exposes the endpoint, replace the
-// body of getInvestigation() with a real fetch (mirroring lib/gateway.ts's
-// pattern — server-side only, Bearer/whatever-auth from env vars
-// AGENT_API_URL / AGENT_API_KEY). The Investigation return type is
-// already defined in types/index.ts so no caller needs to change.
+// Phase 1 fallback preserved: when AGENT_API_URL isn't set, getInvestigation()
+// returns null so the dashboard renders an honest "no investigation data
+// available yet" state instead of an error.
 import "server-only";
 
 import type { Investigation } from "@/types";
 
 const AGENT_API_URL = process.env.AGENT_API_URL;
+const AGENT_API_KEY = process.env.AGENT_API_KEY;
+
+export class AgentApiRequestError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+  ) {
+    super(message);
+  }
+}
 
 export async function getInvestigation(incidentId: string): Promise<Investigation | null> {
   if (!AGENT_API_URL) {
-    // Expected in Phase 1: the agent read API isn't built yet.
+    // Expected when the agent API isn't configured in this environment.
     return null;
   }
 
-  // Phase 2 implementation goes here once the real endpoint exists:
-  //
-  // const res = await fetch(`${AGENT_API_URL}/investigations/${encodeURIComponent(incidentId)}`, {
-  //   headers: { Authorization: `Bearer ${process.env.AGENT_API_KEY}` },
-  //   cache: "no-store",
-  // });
-  // if (res.status === 404) return null;
-  // if (!res.ok) throw new Error(`Agent API request failed: ${res.status}`);
-  // return res.json() as Promise<Investigation>;
+  const res = await fetch(
+    `${AGENT_API_URL}/investigations/${encodeURIComponent(incidentId)}`,
+    {
+      headers: { Authorization: `Bearer ${AGENT_API_KEY}` },
+      cache: "no-store",
+    },
+  );
 
-  void incidentId;
-  return null;
+  if (res.status === 404) {
+    // No trajectory file for this incident yet — not an error.
+    return null;
+  }
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new AgentApiRequestError(
+      `Agent API request to /investigations/${incidentId} failed: ${res.status} ${body}`,
+      res.status,
+    );
+  }
+
+  return res.json() as Promise<Investigation>;
 }

@@ -42,7 +42,9 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    setLoading(true);
+    // Fetch-on-mount: setLoading(false) runs inside an async .finally, not
+    // synchronously in the effect body, but the lint rule can't tell that.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadIncidents().finally(() => setLoading(false));
   }, []);
 

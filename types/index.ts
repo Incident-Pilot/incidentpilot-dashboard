@@ -116,23 +116,58 @@ export interface TopologyResponse {
 
 // --- Intelligence Plane (incident-pilot-agent) read API ---
 //
-// Does not exist yet (see build prompt, Section 1/5). This is a
-// best-guess shape based on the agent's Hypothesis/Verification models
-// (incident_pilot_agent/models/{hypothesis,verification}.py) so
-// getInvestigation()'s Phase 2 implementation is a one-function change,
-// not a redesign. Treat every field as provisional until the real
-// GET /investigations/{incident_id} endpoint is confirmed.
+// Mirrors incident_pilot_agent/api/schemas.py's InvestigationDetail
+// (agentic_layer repo) exactly, captured 2026-08-26 by standing up that
+// app against real trajectory files and curling
+// GET /investigations/{incident_id} for a ROOT_CAUSE_CONFIRMED incident
+// (INC-126C57F9) and an ESCALATED one (INC-B0A77F30). Replaces the old
+// best-guess shape from the Hypothesis/Verification models directly —
+// the real read API flattens/renames several fields (e.g. hypothesis
+// detail is nested under `hypothesis`, there is no top-level
+// `root_cause`/`confidence`/`causal_chain`, `iteration` not
+// `iteration_count`). Keep in sync if incident_pilot_agent's schemas.py
+// changes.
+export type InvestigationPhase =
+  | "DETECTED"
+  | "INVESTIGATING"
+  | "HYPOTHESIS_GENERATED"
+  | "VERIFYING"
+  | "ROOT_CAUSE_CONFIRMED"
+  | "VERIFICATION_FAILED"
+  | "ESCALATED";
+
+// Per-round verifier verdict — not the same concept as `phase`. An
+// ESCALATED incident's last round still has verification_verdict
+// "REJECTED" (its final hypothesis lost verification); ESCALATED itself
+// only shows up in `phase`, never here.
 export type VerificationVerdict = "CONFIRMED" | "REJECTED";
 
+// Null until a hypothesis has been synthesized (phase DETECTED/early
+// INVESTIGATING). No `root_cause` field — `description` is the closest
+// analog. No `status`/`rejection_reason` here: those live on the
+// Hypothesis model server-side but aren't exposed by this read API.
+export interface InvestigationHypothesis {
+  id: string;
+  description: string;
+  confidence: number; // 0.0 - 1.0
+  supporting_evidence: string[];
+  contradicting_evidence: string[];
+}
+
+// GET /investigations/{incident_id}. 404 (body: { detail: string }) when
+// no trajectory file exists yet for the incident — getInvestigation()
+// maps that to null.
 export interface Investigation {
   incident_id: string;
-  root_cause: string;
-  causal_chain: string[];
-  confidence: number; // 0.0 - 1.0
-  affected_services: string[];
-  supporting_evidence_ids: string[];
-  contradicting_evidence_ids: string[];
+  phase: InvestigationPhase;
+  iteration: number;
+  hypothesis: InvestigationHypothesis | null;
   verification_verdict: VerificationVerdict | null;
-  iteration_count: number;
+  // Count only — the read API does not expose the rejected hypotheses'
+  // descriptions/rejection reasons themselves, even though that data
+  // exists in the agent's trajectory files. Worth requesting from
+  // incident-pilot-agent if the UI ever needs to list them.
+  rejected_hypotheses_count: number;
   updated_at: string;
+  reasoning_summary: string;
 }
