@@ -14,6 +14,7 @@ import { TopologyView } from "@/components/incident/TopologyView";
 import { TimelineView } from "@/components/incident/TimelineView";
 import { RemediationPlaceholder } from "@/components/incident/RemediationPlaceholder";
 import { AssigneePlaceholder } from "@/components/incident/AssigneePlaceholder";
+import { IncidentStatusActions } from "@/components/incident/IncidentStatusActions";
 
 export interface IncidentDetailData {
   detail: IncidentDetail;
@@ -24,7 +25,13 @@ export interface IncidentDetailData {
   investigationLoading: boolean;
 }
 
-export function IncidentDetailPanel({ data }: { data: IncidentDetailData | null }) {
+export function IncidentDetailPanel({
+  data,
+  onStatusChanged,
+}: {
+  data: IncidentDetailData | null;
+  onStatusChanged: (updated: IncidentDetail) => void;
+}) {
   if (!data) {
     return (
       <div className="flex h-full min-h-[400px] items-center justify-center rounded-lg border border-border bg-surface-2 text-sm text-text-secondary">
@@ -51,6 +58,9 @@ export function IncidentDetailPanel({ data }: { data: IncidentDetailData | null 
               : "No affected services recorded"}
             {detail.affected_namespace ? ` · ${detail.affected_namespace}` : ""}
           </span>
+        </div>
+        <div className="mt-3">
+          <IncidentStatusActions detail={detail} onStatusChanged={onStatusChanged} />
         </div>
       </div>
 

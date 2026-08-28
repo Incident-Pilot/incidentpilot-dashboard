@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Incident Pilot Dashboard",
-  description: "Read-only view over the Observation Gateway and Intelligence Plane.",
+  description: "Dashboard over the Observation Gateway and Intelligence Plane.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

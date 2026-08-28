@@ -8,6 +8,7 @@ import "server-only";
 import type {
   Incident,
   IncidentDetail,
+  IncidentStatus,
   Evidence,
   SourceStatusResponse,
   TimelineResponse,
@@ -27,7 +28,7 @@ export class GatewayRequestError extends Error {
   }
 }
 
-async function gatewayFetch<T>(path: string): Promise<T> {
+async function gatewayFetch<T>(path: string, init?: RequestInit): Promise<T> {
   if (!GATEWAY_URL || !GATEWAY_API_KEY) {
     throw new GatewayConfigError(
       "GATEWAY_URL and GATEWAY_API_KEY must be set (see .env.example)",
@@ -35,7 +36,9 @@ async function gatewayFetch<T>(path: string): Promise<T> {
   }
 
   const res = await fetch(`${GATEWAY_URL}${path}`, {
+    ...init,
     headers: {
+      ...init?.headers,
       Authorization: `Bearer ${GATEWAY_API_KEY}`,
     },
     cache: "no-store",
@@ -81,4 +84,20 @@ export async function getIncidentTimeline(incidentId: string): Promise<TimelineR
 
 export async function getTopology(): Promise<TopologyResponse> {
   return gatewayFetch<TopologyResponse>("/topology");
+}
+
+// The Gateway's first human-triggered write (PATCH /incidents/{id}/status
+// -- shared/models's IncidentStatus is only open/resolved/closed, and the
+// Gateway rejects setting status back to "open" via this endpoint, so the
+// dashboard never offers that path either). Response is the same
+// composite IncidentDetail shape as getIncident().
+export async function updateIncidentStatus(
+  incidentId: string,
+  status: Extract<IncidentStatus, "resolved" | "closed">,
+): Promise<IncidentDetail> {
+  return gatewayFetch<IncidentDetail>(`/incidents/${encodeURIComponent(incidentId)}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
 }

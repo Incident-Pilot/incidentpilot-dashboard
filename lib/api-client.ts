@@ -4,6 +4,7 @@
 import type {
   Incident,
   IncidentDetail,
+  IncidentStatus,
   Evidence,
   SourceStatusResponse,
   TimelineResponse,
@@ -41,4 +42,21 @@ export function fetchIncidentTimeline(id: string): Promise<TimelineResponse> {
 
 export function fetchInvestigation(id: string): Promise<Investigation | null> {
   return fetchJson(`/api/incidents/${encodeURIComponent(id)}/investigation`);
+}
+
+export async function updateIncidentStatus(
+  id: string,
+  status: Extract<IncidentStatus, "resolved" | "closed">,
+): Promise<IncidentDetail> {
+  const res = await fetch(`/api/incidents/${encodeURIComponent(id)}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `Request to update status failed: ${res.status}`);
+  }
+  return res.json() as Promise<IncidentDetail>;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { Incident } from "@/types";
+import type { Incident, IncidentDetail } from "@/types";
 import {
   fetchIncidents,
   fetchIncidentDetail,
@@ -12,6 +12,7 @@ import {
 } from "@/lib/api-client";
 import { FilterBar, type Filters } from "@/components/layout/FilterBar";
 import { StatCards } from "@/components/layout/StatCards";
+import { LogoutButton } from "@/components/layout/LogoutButton";
 import { IncidentList } from "@/components/incident/IncidentList";
 import {
   IncidentDetailPanel,
@@ -98,6 +99,19 @@ export default function DashboardPage() {
     loadDetail(id);
   }
 
+  // The response from PATCH .../status is the same composite IncidentDetail
+  // shape GET returns, so it can replace detailData.detail directly -- no
+  // refetch needed. Also patches the matching row in the list/StatCards so
+  // the status badge and counts update immediately without a full reload.
+  function handleStatusChanged(updated: IncidentDetail) {
+    setDetailData((prev) =>
+      prev && prev.detail.incident_id === updated.incident_id ? { ...prev, detail: updated } : prev,
+    );
+    setIncidents((prev) =>
+      prev.map((incident) => (incident.incident_id === updated.incident_id ? updated : incident)),
+    );
+  }
+
   const filteredIncidents = useMemo(() => {
     const search = filters.search.trim().toLowerCase();
     return incidents.filter((incident) => {
@@ -115,7 +129,10 @@ export default function DashboardPage() {
     <main className="mx-auto max-w-[1400px] space-y-4 p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-text-primary">Incident Pilot Dashboard</h1>
-        <span className="text-xs text-text-muted">Read-only · manual refresh</span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-text-muted">Manual refresh</span>
+          <LogoutButton />
+        </div>
       </div>
 
       <FilterBar
@@ -154,7 +171,7 @@ export default function DashboardPage() {
               {detailError}
             </div>
           ) : (
-            <IncidentDetailPanel data={detailData} />
+            <IncidentDetailPanel data={detailData} onStatusChanged={handleStatusChanged} />
           )}
         </div>
       </div>
