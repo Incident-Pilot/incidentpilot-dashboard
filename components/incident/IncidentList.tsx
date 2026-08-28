@@ -3,6 +3,7 @@
 import type { Incident } from "@/types";
 import { StatusBadge } from "@/components/badges/StatusBadge";
 import { SeverityBadge } from "@/components/badges/SeverityBadge";
+import { formatRelativeTime } from "@/lib/format-time";
 
 export function IncidentList({
   incidents,
@@ -43,6 +44,9 @@ export function IncidentList({
               </div>
               <div className="mt-1 truncate text-sm font-medium text-text-primary">
                 {incident.title}
+              </div>
+              <div className="mt-0.5 text-xs text-text-muted">
+                {formatRelativeTime(incident.created_at)}
               </div>
               <div className="mt-1 flex items-center justify-between gap-2">
                 <span className="truncate text-xs text-text-secondary">

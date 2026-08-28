@@ -1,4 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import type { RemediationAction, RemediationActionType, RemediationPlan, RemediationRiskLevel } from "@/types";
+
+const COLLAPSED_ACTION_COUNT = 2;
 
 const ACTION_TYPE_LABELS: Record<RemediationActionType, string> = {
   rollback_deployment: "Rollback deployment",
@@ -48,6 +53,12 @@ function RemediationActionRow({ action }: { action: RemediationAction }) {
 }
 
 export function RemediationCard({ plan }: { plan: RemediationPlan }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const hasMore = plan.actions.length > COLLAPSED_ACTION_COUNT;
+  const visibleActions = expanded ? plan.actions : plan.actions.slice(0, COLLAPSED_ACTION_COUNT);
+  const hiddenCount = plan.actions.length - COLLAPSED_ACTION_COUNT;
+
   return (
     <div className="rounded-lg border border-warning-bg bg-surface-2 p-4">
       <div className="flex items-center justify-between">
@@ -62,10 +73,20 @@ export function RemediationCard({ plan }: { plan: RemediationPlan }) {
       <p className="mt-2 text-sm font-medium text-warning-text">{plan.disclaimer}</p>
 
       <div className="mt-3 space-y-2">
-        {plan.actions.map((action, index) => (
+        {visibleActions.map((action, index) => (
           <RemediationActionRow key={`${action.action_type}-${action.target}-${index}`} action={action} />
         ))}
       </div>
+
+      {hasMore && (
+        <button
+          type="button"
+          onClick={() => setExpanded((prev) => !prev)}
+          className="mt-2 text-xs font-medium text-accent-text hover:underline"
+        >
+          {expanded ? "Show less" : `Show ${hiddenCount} more`}
+        </button>
+      )}
     </div>
   );
 }

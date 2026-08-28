@@ -15,6 +15,7 @@ import { TimelineView } from "@/components/incident/TimelineView";
 import { RemediationPlaceholder } from "@/components/incident/RemediationPlaceholder";
 import { AssigneePlaceholder } from "@/components/incident/AssigneePlaceholder";
 import { IncidentStatusActions } from "@/components/incident/IncidentStatusActions";
+import { formatAbsoluteTime } from "@/lib/format-time";
 
 export interface IncidentDetailData {
   detail: IncidentDetail;
@@ -59,6 +60,9 @@ export function IncidentDetailPanel({
             {detail.affected_namespace ? ` · ${detail.affected_namespace}` : ""}
           </span>
         </div>
+        <div className="mt-1 text-sm text-text-secondary">
+          Reported {formatAbsoluteTime(detail.created_at)}
+        </div>
         <div className="mt-3">
           <IncidentStatusActions detail={detail} onStatusChanged={onStatusChanged} />
         </div>
@@ -68,6 +72,11 @@ export function IncidentDetailPanel({
 
       <div className="rounded-lg border border-border bg-surface-2 p-4">
         <SourceStatusRow entries={sourceStatus} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <RemediationPlaceholder investigation={investigation} />
+        <AssigneePlaceholder />
       </div>
 
       <div className="rounded-lg border border-border bg-surface-2 p-4">
@@ -80,11 +89,6 @@ export function IncidentDetailPanel({
 
       <div className="rounded-lg border border-border bg-surface-2 p-4">
         <TimelineView entries={timeline} />
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <RemediationPlaceholder investigation={investigation} />
-        <AssigneePlaceholder />
       </div>
     </div>
   );
