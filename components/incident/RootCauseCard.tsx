@@ -108,7 +108,9 @@ export function RootCauseCard({
     );
   }
 
-  // phase === "ROOT_CAUSE_CONFIRMED"
+  // phase === "ROOT_CAUSE_CONFIRMED" or "REMEDIATION_PROPOSED" — both show
+  // the same confirmed root-cause card; remediation itself renders
+  // separately in RemediationPlaceholder/RemediationCard.
   return (
     <div className="rounded-lg border border-accent-border bg-surface-2 p-4">
       <div className="flex items-center justify-between">
@@ -134,6 +136,33 @@ export function RootCauseCard({
               {iteration === 1 ? "" : "s"}
             </div>
           </div>
+
+          {hypothesis.causal_chain.length > 0 && (
+            <div className="mt-3">
+              <div className="text-xs font-medium text-text-secondary">Causal chain</div>
+              <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-xs text-text-secondary">
+                {hypothesis.causal_chain.map((step, index) => (
+                  <li key={index}>{step}</li>
+                ))}
+              </ol>
+            </div>
+          )}
+
+          {hypothesis.affected_services.length > 0 && (
+            <div className="mt-3">
+              <div className="text-xs font-medium text-text-secondary">Affected services</div>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {hypothesis.affected_services.map((service) => (
+                  <span
+                    key={service}
+                    className="rounded border border-border bg-surface-1 px-1.5 py-0.5 text-[11px] text-text-secondary"
+                  >
+                    {service}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {hypothesis.supporting_evidence.length > 0 && (
             <div className="mt-3">
