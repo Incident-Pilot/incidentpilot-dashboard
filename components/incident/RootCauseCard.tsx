@@ -1,4 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import type { Investigation, InvestigationPhase } from "@/types";
+import { invokeInvestigation } from "@/lib/api-client";
 
 function Section({ title }: { title: string }) {
   return (
@@ -17,10 +21,30 @@ const IN_PROGRESS_PHASES: InvestigationPhase[] = [
 export function RootCauseCard({
   investigation,
   loading,
+  incidentId,
+  onInvestigationStarted,
 }: {
   investigation: Investigation | null;
   loading: boolean;
+  incidentId?: string;
+  onInvestigationStarted?: () => void;
 }) {
+  const [invoking, setInvoking] = useState(false);
+  const [invocationError, setInvocationError] = useState<string | null>(null);
+
+  async function handleInvestigate() {
+    if (!incidentId) return;
+    setInvoking(true);
+    setInvocationError(null);
+    try {
+      await invokeInvestigation(incidentId);
+      onInvestigationStarted?.();
+    } catch (err) {
+      setInvocationError(err instanceof Error ? err.message : "Failed to start investigation");
+    } finally {
+      setInvoking(false);
+    }
+  }
   if (loading) {
     return (
       <div className="rounded-lg border border-border bg-surface-2 p-4">
@@ -35,10 +59,27 @@ export function RootCauseCard({
       <div className="rounded-lg border border-border bg-surface-2 p-4">
         <Section title="Root cause" />
         <p className="mt-2 text-sm text-text-secondary">
-          No investigation data available yet. The Intelligence Plane&rsquo;s read API isn&rsquo;t
-          wired up in this build — once it is, a root-cause hypothesis will appear here
-          automatically.
+          No investigation data available yet. Start the investigation to analyze this incident.
         </p>
+        {invocationError && (
+          <p className="mt-2 text-sm text-error-text">{invocationError}</p>
+        )}
+        <div className="mt-4">
+          <button
+            onClick={handleInvestigate}
+            disabled={invoking}
+            className="inline-flex items-center rounded-md bg-accent-bg px-3 py-2 text-sm font-medium text-accent-text hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {invoking ? (
+              <>
+                <span className="inline-block mr-2 h-4 w-4 animate-spin rounded-full border-2 border-accent-text border-t-transparent"></span>
+                Starting Investigation…
+              </>
+            ) : (
+              "Investigate"
+            )}
+          </button>
+        </div>
       </div>
     );
   }

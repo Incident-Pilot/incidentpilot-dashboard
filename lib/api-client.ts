@@ -60,3 +60,15 @@ export async function updateIncidentStatus(
   }
   return res.json() as Promise<IncidentDetail>;
 }
+
+export async function invokeInvestigation(id: string): Promise<{ message: string; incident_id: string }> {
+  const res = await fetch(`/api/incidents/${encodeURIComponent(id)}/investigate`, {
+    method: "POST",
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `Failed to invoke investigation: ${res.status}`);
+  }
+  return res.json() as Promise<{ message: string; incident_id: string }>;
+}

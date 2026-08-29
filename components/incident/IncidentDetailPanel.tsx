@@ -68,7 +68,16 @@ export function IncidentDetailPanel({
         </div>
       </div>
 
-      <RootCauseCard investigation={investigation} loading={investigationLoading} />
+      <RootCauseCard
+        investigation={investigation}
+        loading={investigationLoading}
+        incidentId={detail.incident_id}
+        onInvestigationStarted={() => {
+          // Optionally refetch investigation data after starting investigation
+          // For now, just set it to loading state
+          // The parent component (page.tsx) will periodically refetch investigation data
+        }}
+      />
 
       <div className="rounded-lg border border-border bg-surface-2 p-4">
         <SourceStatusRow entries={sourceStatus} />
