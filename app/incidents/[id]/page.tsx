@@ -11,6 +11,7 @@ import { getInvestigation } from "@/lib/investigation";
 import { IncidentDetailHeader } from "@/components/incident/IncidentDetailHeader";
 import { InvestigationSection } from "@/components/incident/InvestigationSection";
 import { IncidentTabs } from "@/components/incident/IncidentTabs";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 export default async function IncidentDetailPage({
   params,
@@ -39,9 +40,12 @@ export default async function IncidentDetailPage({
 
   return (
     <main className="mx-auto max-w-[1400px] space-y-4 p-6">
-      <Link href="/" className="text-sm text-accent-text hover:underline">
-        ← Back to incidents
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link href="/" className="text-sm text-accent-text hover:underline">
+          ← Back to incidents
+        </Link>
+        <ThemeToggle />
+      </div>
 
       <IncidentDetailHeader detail={detail} />
 

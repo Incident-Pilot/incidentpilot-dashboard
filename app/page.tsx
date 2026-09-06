@@ -6,6 +6,7 @@ import { fetchIncidents, fetchInvestigationSummaries } from "@/lib/api-client";
 import { FilterBar, type Filters } from "@/components/layout/FilterBar";
 import { StatCards } from "@/components/layout/StatCards";
 import { LogoutButton } from "@/components/layout/LogoutButton";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Pagination } from "@/components/layout/Pagination";
 import { IncidentList } from "@/components/incident/IncidentList";
 
@@ -94,6 +95,7 @@ export default function DashboardPage() {
         <h1 className="text-xl font-semibold text-text-primary">Incident Pilot Dashboard</h1>
         <div className="flex items-center gap-3">
           <span className="text-xs text-text-muted">Manual refresh</span>
+          <ThemeToggle />
           <LogoutButton />
         </div>
       </div>
