@@ -1,7 +1,4 @@
 import { NextResponse } from "next/server";
-import { spawn } from "child_process";
-import path from "path";
-import { existsSync } from "fs";
 
 export async function POST(
   _req: Request,
@@ -11,84 +8,97 @@ export async function POST(
     const { id } = await params;
     const incidentId = decodeURIComponent(id);
 
-    // Get the agentic_layer directory path
-    // Try environment variable first, then fall back to relative path from cwd
-    let agenticLayerDir = process.env.AGENTIC_LAYER_DIR;
+    // Get the Agent API URL from environment
+    const agentApiUrl = process.env.AGENT_API_URL;
 
-    if (!agenticLayerDir) {
-      // Fall back to relative path: from dashboard -> parent -> agentic_layer
-      agenticLayerDir = path.resolve(
-        process.cwd(),
-        "..",
-        "..",
-        "..",
-        "agentic_layer"
-      );
-    }
-
-    // Validate the directory exists
-    if (!existsSync(agenticLayerDir)) {
-      console.error(`Agentic layer directory not found: ${agenticLayerDir}`);
+    if (!agentApiUrl) {
+      console.error("AGENT_API_URL environment variable not set");
       return NextResponse.json(
         {
-          error: "Agentic layer directory not found. Please set AGENTIC_LAYER_DIR environment variable.",
+          error: "Agent API not configured. Please set AGENT_API_URL environment variable to point to the agentic_layer investigation API (e.g., http://agent-service:8100).",
         },
         { status: 500 }
       );
     }
 
+    const agentApiKey = process.env.AGENT_API_KEY;
+
     console.log(
-      `[${incidentId}] Starting investigation with agentic_layer at ${agenticLayerDir}`
+      `[${incidentId}] Triggering investigation via Agent API at ${agentApiUrl}`
     );
 
-    // Spawn the Python process to run investigation
-    // python -m incident_pilot_agent run <INC-id> --llm bedrock --source gateway
-    const pythonProcess = spawn(
-      "python3",
-      [
-        "-m",
-        "incident_pilot_agent",
-        "run",
-        incidentId,
-        "--llm",
-        "bedrock",
-        "--source",
-        "gateway",
-      ],
-      {
-        cwd: agenticLayerDir,
-        detached: true,
-        stdio: "ignore",
-        env: {
-          ...process.env,
-        },
-      }
-    );
+    // Call the Agent API to trigger investigation
+    // POST /investigations/{incident_id} starts the investigation process as a background task
+    const triggerUrl = `${agentApiUrl.replace(/\/$/, "")}/investigations/${encodeURIComponent(incidentId)}`;
 
-    // Handle process errors
-    pythonProcess.on("error", (err) => {
-      console.error(`[${incidentId}] Failed to spawn investigation process:`, err);
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (agentApiKey) {
+      headers["Authorization"] = `Bearer ${agentApiKey}`;
+    }
+
+    const response = await fetch(triggerUrl, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({}),
     });
 
-    // Unref the process so Node doesn't wait for it
-    pythonProcess.unref();
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => "");
+      console.error(
+        `[${incidentId}] Agent API returned ${response.status}: ${errorBody}`
+      );
 
-    // Return 202 Accepted immediately without waiting for investigation to complete
+      // If the endpoint doesn't exist, provide helpful guidance
+      if (response.status === 404) {
+        return NextResponse.json(
+          {
+            error: "Agent API investigation endpoint not found. Ensure AGENT_API_URL points to the agentic_layer investigation API (the watch service).",
+          },
+          { status: 502 }
+        );
+      }
+
+      if (response.status === 409) {
+        // Incident already being investigated or not ready
+        const detail = await response.json().catch(() => ({}));
+        return NextResponse.json(
+          {
+            error: detail.detail?.message || "Investigation already in progress or incident not ready",
+          },
+          { status: 409 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          error: `Failed to trigger investigation: ${response.status} ${errorBody || response.statusText}`,
+        },
+        { status: 502 }
+      );
+    }
+
+    const result = await response.json();
+
+    // Return 202 Accepted to indicate investigation was triggered
     return NextResponse.json(
       {
-        message: "Investigation started in background",
+        message: "Investigation triggered",
         incident_id: incidentId,
+        ...result,
       },
       { status: 202 }
     );
   } catch (error) {
-    console.error("Failed to start investigation:", error);
+    console.error("Failed to trigger investigation:", error);
     return NextResponse.json(
       {
         error:
           error instanceof Error
             ? error.message
-            : "Failed to start investigation",
+            : "Failed to trigger investigation",
       },
       { status: 500 }
     );
