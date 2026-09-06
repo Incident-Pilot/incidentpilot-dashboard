@@ -151,7 +151,7 @@ export default function DashboardPage() {
       )}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[45fr_55fr]">
-        <div>
+        <div className="min-w-0">
           {loading ? (
             <div className="rounded-lg border border-border bg-surface-2 px-4 py-8 text-center text-sm text-text-secondary">
               Loading incidents…
@@ -165,7 +165,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div>
+        <div className="min-w-0">
           {detailError ? (
             <div className="rounded-md border border-danger-bg bg-danger-bg px-4 py-3 text-sm text-danger-text">
               {detailError}
