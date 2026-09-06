@@ -13,6 +13,7 @@ import { EvidenceList } from "@/components/incident/EvidenceList";
 import { TopologyView } from "@/components/incident/TopologyView";
 import { TimelineView } from "@/components/incident/TimelineView";
 import { RemediationPlaceholder } from "@/components/incident/RemediationPlaceholder";
+import { PostMortemPlaceholder } from "@/components/incident/PostMortemPlaceholder";
 import { AssigneePlaceholder } from "@/components/incident/AssigneePlaceholder";
 import { IncidentStatusActions } from "@/components/incident/IncidentStatusActions";
 import { formatAbsoluteTime } from "@/lib/format-time";
@@ -87,6 +88,8 @@ export function IncidentDetailPanel({
         <RemediationPlaceholder investigation={investigation} />
         <AssigneePlaceholder />
       </div>
+
+      <PostMortemPlaceholder investigation={investigation} />
 
       <div className="rounded-lg border border-border bg-surface-2 p-4">
         <EvidenceList evidence={evidence} />

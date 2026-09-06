@@ -149,9 +149,11 @@ export function RootCauseCard({
     );
   }
 
-  // phase === "ROOT_CAUSE_CONFIRMED" or "REMEDIATION_PROPOSED" — both show
-  // the same confirmed root-cause card; remediation itself renders
-  // separately in RemediationPlaceholder/RemediationCard.
+  // phase === "ROOT_CAUSE_CONFIRMED", "REMEDIATION_PROPOSED", or
+  // "POSTMORTEM_GENERATED" — all three show the same confirmed root-cause
+  // card; remediation and post-mortem themselves render separately in
+  // RemediationPlaceholder/RemediationCard and
+  // PostMortemPlaceholder/PostMortemCard.
   return (
     <div className="rounded-lg border border-accent-border bg-surface-2 p-4">
       <div className="flex items-center justify-between">

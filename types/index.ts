@@ -154,6 +154,7 @@ export type InvestigationPhase =
   | "VERIFYING"
   | "ROOT_CAUSE_CONFIRMED"
   | "REMEDIATION_PROPOSED"
+  | "POSTMORTEM_GENERATED"
   | "VERIFICATION_FAILED"
   | "ESCALATED";
 
@@ -212,6 +213,31 @@ export interface RemediationPlan {
   disclaimer: string;
 }
 
+// Mirrors PostMortemActionItemSummary/PostMortemSummary (api/schemas.py).
+// Distinct in kind from RemediationAction: these are preventive/detection/
+// process follow-ups aimed at reducing the chance or impact of a
+// recurrence, not the immediate technical fix for this incident.
+export type PostMortemActionCategory = "prevent" | "detect" | "process";
+export type PostMortemActionPriority = "low" | "medium" | "high";
+
+export interface PostMortemActionItem {
+  description: string;
+  category: PostMortemActionCategory;
+  priority: PostMortemActionPriority;
+}
+
+// Non-null only once phase reaches POSTMORTEM_GENERATED (a CONFIRMED,
+// actionable hypothesis that reached the post-mortem node, always right
+// after remediation_plan is set -- see incident_pilot_agent/graph/build.py).
+export interface PostMortem {
+  hypothesis_id: string;
+  summary: string;
+  impact: string;
+  contributing_factors: string[];
+  action_items: PostMortemActionItem[];
+  lessons_learned: string[];
+}
+
 // GET /investigations/{incident_id}. 404 (body: { detail: string }) when
 // no trajectory file exists yet for the incident — getInvestigation()
 // maps that to null.
@@ -231,4 +257,7 @@ export interface Investigation {
   // Non-null only once phase reaches REMEDIATION_PROPOSED (a CONFIRMED,
   // actionable hypothesis that reached the remediation planner node).
   remediation_plan: RemediationPlan | null;
+  // Non-null only once phase reaches POSTMORTEM_GENERATED -- see
+  // PostMortem's own doc comment above.
+  postmortem: PostMortem | null;
 }
