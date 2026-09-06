@@ -261,3 +261,17 @@ export interface Investigation {
   // PostMortem's own doc comment above.
   postmortem: PostMortem | null;
 }
+
+// GET /investigations -- mirrors InvestigationListItem (api/schemas.py)
+// exactly: a strict subset of Investigation's fields, no hypothesis detail.
+// Used to compute which incidents are "actionable now" (phase
+// REMEDIATION_PROPOSED or POSTMORTEM_GENERATED -- both only ever reached
+// for a CONFIRMED, actionable hypothesis, see graph/build.py's routing)
+// across the whole incident list in one call, rather than fetching each
+// incident's full Investigation individually.
+export interface InvestigationSummary {
+  incident_id: string;
+  phase: InvestigationPhase;
+  confidence: number | null;
+  updated_at: string;
+}

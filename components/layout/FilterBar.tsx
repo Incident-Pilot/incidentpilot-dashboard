@@ -6,6 +6,10 @@ export interface Filters {
   severity: Severity | "all";
   status: IncidentStatus | "all";
   search: string;
+  // Restricts the list to incidents with a proposed remediation plan
+  // awaiting action (phase REMEDIATION_PROPOSED or POSTMORTEM_GENERATED,
+  // still open) -- see app/page.tsx's actionableIds computation.
+  actionableOnly: boolean;
 }
 
 export function FilterBar({
@@ -54,6 +58,15 @@ export function FilterBar({
         value={filters.search}
         onChange={(e) => onChange({ ...filters, search: e.target.value })}
       />
+
+      <label className="flex items-center gap-2 rounded-md border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary">
+        <input
+          type="checkbox"
+          checked={filters.actionableOnly}
+          onChange={(e) => onChange({ ...filters, actionableOnly: e.target.checked })}
+        />
+        Actionable only
+      </label>
 
       <button
         type="button"

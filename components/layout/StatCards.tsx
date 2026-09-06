@@ -15,7 +15,16 @@ function StatCard({ label, value, accent }: { label: string; value: number; acce
   );
 }
 
-export function StatCards({ incidents }: { incidents: Incident[] }) {
+export function StatCards({
+  incidents,
+  actionableIds,
+}: {
+  incidents: Incident[];
+  // Optional: absent while investigation data hasn't loaded yet (or the
+  // agent API isn't configured), in which case the card just reads 0
+  // rather than blocking on a second fetch to render the other three.
+  actionableIds?: Set<string>;
+}) {
   const open = incidents.filter((i) => i.status === "open").length;
   const resolved = incidents.filter((i) => i.status === "resolved").length;
   const closed = incidents.filter((i) => i.status === "closed").length;
@@ -24,13 +33,17 @@ export function StatCards({ incidents }: { incidents: Incident[] }) {
   // replaces the spec's original "Escalated" bucket, which has no backing
   // field on the Gateway's Incident model).
   const critical = incidents.filter((i) => i.status === "open" && i.severity === "critical").length;
+  const actionable = actionableIds
+    ? incidents.filter((i) => i.status === "open" && actionableIds.has(i.incident_id)).length
+    : 0;
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
       <StatCard label="Open" value={open} accent />
       <StatCard label="Resolved" value={resolved} />
       <StatCard label="Closed" value={closed} />
       <StatCard label="Critical" value={critical} />
+      <StatCard label="Actionable now" value={actionable} accent />
     </div>
   );
 }

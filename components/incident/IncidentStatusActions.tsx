@@ -1,19 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { IncidentDetail } from "@/types";
 import { updateIncidentStatus } from "@/lib/api-client";
 
 // Only ever shown for "open" incidents -- once resolved/closed there is no
 // path back to open via this UI (matches the Gateway's own restriction),
 // so the buttons simply stop rendering rather than becoming disabled.
-export function IncidentStatusActions({
-  detail,
-  onStatusChanged,
-}: {
-  detail: IncidentDetail;
-  onStatusChanged: (updated: IncidentDetail) => void;
-}) {
+export function IncidentStatusActions({ detail }: { detail: IncidentDetail }) {
+  const router = useRouter();
   const [pending, setPending] = useState<"resolved" | "closed" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,8 +26,11 @@ export function IncidentStatusActions({
     setError(null);
     setPending(status);
     try {
-      const updated = await updateIncidentStatus(detail.incident_id, status);
-      onStatusChanged(updated);
+      await updateIncidentStatus(detail.incident_id, status);
+      // The detail page is a Server Component -- router.refresh() re-runs
+      // its data fetch so the updated status/header render fresh, instead
+      // of this component owning a copy of IncidentDetail to patch itself.
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update status.");
     } finally {

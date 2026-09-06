@@ -7,7 +7,7 @@
 // available yet" state instead of an error.
 import "server-only";
 
-import type { Investigation } from "@/types";
+import type { Investigation, InvestigationSummary } from "@/types";
 
 const AGENT_API_URL = process.env.AGENT_API_URL;
 const AGENT_API_KEY = process.env.AGENT_API_KEY;
@@ -48,4 +48,26 @@ export async function getInvestigation(incidentId: string): Promise<Investigatio
   }
 
   return res.json() as Promise<Investigation>;
+}
+
+// GET /investigations -- used to compute which incidents are "actionable
+// now" (see InvestigationSummary's own doc comment) across the whole list
+// in one call. Same fallback as getInvestigation(): an unconfigured agent
+// API means no investigation data exists yet, not an error.
+export async function listInvestigations(): Promise<InvestigationSummary[]> {
+  if (!AGENT_API_URL) {
+    return [];
+  }
+
+  const res = await fetch(`${AGENT_API_URL}/investigations`, {
+    headers: { Authorization: `Bearer ${AGENT_API_KEY}` },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new AgentApiRequestError(`Agent API request to /investigations failed: ${res.status} ${body}`, res.status);
+  }
+
+  return res.json() as Promise<InvestigationSummary[]>;
 }

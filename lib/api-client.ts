@@ -1,15 +1,7 @@
 // Browser-side fetch helpers. These call ONLY this app's own /api/* routes
 // — never the Gateway or agent API directly — so no credentials ever need
 // to reach client code.
-import type {
-  Incident,
-  IncidentDetail,
-  IncidentStatus,
-  Evidence,
-  SourceStatusResponse,
-  TimelineResponse,
-  Investigation,
-} from "@/types";
+import type { Incident, IncidentDetail, IncidentStatus, Investigation, InvestigationSummary } from "@/types";
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(path, { cache: "no-store" });
@@ -24,24 +16,18 @@ export function fetchIncidents(): Promise<{ incidents: Incident[] }> {
   return fetchJson("/api/incidents");
 }
 
-export function fetchIncidentDetail(id: string): Promise<IncidentDetail> {
-  return fetchJson(`/api/incidents/${encodeURIComponent(id)}`);
-}
-
-export function fetchIncidentEvidence(id: string): Promise<Evidence[]> {
-  return fetchJson(`/api/incidents/${encodeURIComponent(id)}/evidence`);
-}
-
-export function fetchIncidentSourceStatus(id: string): Promise<SourceStatusResponse> {
-  return fetchJson(`/api/incidents/${encodeURIComponent(id)}/source-status`);
-}
-
-export function fetchIncidentTimeline(id: string): Promise<TimelineResponse> {
-  return fetchJson(`/api/incidents/${encodeURIComponent(id)}/timeline`);
-}
+// Note: incident detail/evidence/source-status/timeline are fetched
+// server-side directly via lib/gateway.ts in app/incidents/[id]/page.tsx
+// (a Server Component) -- no client-side equivalent needed for those.
 
 export function fetchInvestigation(id: string): Promise<Investigation | null> {
   return fetchJson(`/api/incidents/${encodeURIComponent(id)}/investigation`);
+}
+
+// Powers the "actionable now" view on the list page -- one call covering
+// every investigated incident, rather than fetching each one individually.
+export function fetchInvestigationSummaries(): Promise<InvestigationSummary[]> {
+  return fetchJson("/api/investigations");
 }
 
 export async function updateIncidentStatus(
