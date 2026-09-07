@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { CheckCircle2, X } from "lucide-react";
 import type { IncidentDetail } from "@/types";
 import { updateIncidentStatus } from "@/lib/api-client";
 
@@ -47,8 +48,9 @@ export function IncidentStatusActions({ detail }: { detail: IncidentDetail }) {
         onClick={() =>
           handleChange("resolved", "Are you sure you want to mark this incident as resolved?")
         }
-        className="rounded-md border border-success-bg bg-success-bg px-3 py-1.5 text-sm font-medium text-success-text hover:opacity-90 disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-success-bg bg-success-bg px-3 py-1.5 text-sm font-medium text-success-text shadow-card transition-opacity hover:opacity-90 disabled:opacity-50"
       >
+        <CheckCircle2 className="h-4 w-4" aria-hidden />
         {pending === "resolved" ? "Resolving…" : "Resolve"}
       </button>
       <button
@@ -60,8 +62,9 @@ export function IncidentStatusActions({ detail }: { detail: IncidentDetail }) {
             "Are you sure you want to cancel this incident? It will be marked as closed.",
           )
         }
-        className="rounded-md border border-border bg-surface-2 px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-surface-1 disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-2 px-3 py-1.5 text-sm font-medium text-text-secondary shadow-card transition-colors hover:bg-surface-1 disabled:opacity-50"
       >
+        <X className="h-4 w-4" aria-hidden />
         {pending === "closed" ? "Cancelling…" : "Cancel"}
       </button>
     </div>
