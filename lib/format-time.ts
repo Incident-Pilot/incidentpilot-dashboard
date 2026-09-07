@@ -1,7 +1,13 @@
-// Local-time formatting, matching the only other timestamp display in this
-// app (TimelineView's `new Date(...).toLocaleString()`) — no explicit UTC
-// conversion, so both stay consistent with each other and with whatever
-// timezone the viewer's browser is already in.
+// Fixed locale + UTC, deliberately not "whatever the viewer's browser is
+// set to": app/incidents/[id]/page.tsx is a Server Component, so
+// formatAbsoluteTime() runs once on the server (Node's own default locale)
+// and again during client hydration (the browser's) -- an unpinned
+// `toLocaleString(undefined, ...)` renders a different string each time
+// (e.g. "8/11/2026, 9:48 PM" vs "11/08/2026, 21:48"), which is a real
+// hydration-mismatch bug, not just a style choice. Pinning both also means
+// two engineers in different timezones comparing an incident's timeline
+// see the same wall-clock time, which matters more here than local-time
+// convenience does.
 
 const MINUTE = 60;
 const HOUR = 60 * MINUTE;
@@ -30,8 +36,10 @@ export function formatRelativeTime(iso: string, now: Date = new Date()): string 
 }
 
 export function formatAbsoluteTime(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, {
+  const formatted = new Date(iso).toLocaleString("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: "UTC",
   });
+  return `${formatted} UTC`;
 }
