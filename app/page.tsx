@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Radar } from "lucide-react";
 import type { Incident, InvestigationSummary } from "@/types";
 import { fetchIncidents, fetchInvestigationSummaries } from "@/lib/api-client";
 import { FilterBar, type Filters } from "@/components/layout/FilterBar";
@@ -90,11 +91,16 @@ export default function DashboardPage() {
   const pagedIncidents = filteredIncidents.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <main className="mx-auto max-w-[1400px] space-y-4 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-text-primary">Incident Pilot Dashboard</h1>
+    <main className="mx-auto max-w-[1400px] space-y-6 p-6">
+      <div className="flex items-center justify-between border-b border-border pb-5">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-solid text-white shadow-card">
+            <Radar className="h-4 w-4" aria-hidden />
+          </div>
+          <h1 className="text-lg font-semibold tracking-tight text-text-primary">Incident Pilot</h1>
+        </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-text-muted">Manual refresh</span>
+          <span className="hidden text-xs text-text-muted sm:inline">Manual refresh</span>
           <ThemeToggle />
           <LogoutButton />
         </div>
@@ -105,13 +111,13 @@ export default function DashboardPage() {
       <StatCards incidents={incidents} actionableIds={actionableIds} />
 
       {error && (
-        <div className="rounded-md border border-danger-bg bg-danger-bg px-4 py-3 text-sm text-danger-text">
+        <div className="rounded-xl border border-danger-bg bg-danger-bg px-4 py-3 text-sm text-danger-text shadow-card">
           {error}
         </div>
       )}
 
       {loading ? (
-        <div className="rounded-lg border border-border bg-surface-2 px-4 py-8 text-center text-sm text-text-secondary">
+        <div className="rounded-xl border border-border bg-surface-2 px-4 py-10 text-center text-sm text-text-secondary shadow-card">
           Loading incidents…
         </div>
       ) : (
