@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Radar } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,18 +39,21 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
+    <main className="flex min-h-screen items-center justify-center bg-surface-1 p-6">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm space-y-4 rounded-lg border border-border bg-surface-2 p-6"
+        className="w-full max-w-sm space-y-5 rounded-xl border border-border bg-surface-2 p-7 shadow-card"
       >
-        <div>
-          <h1 className="text-lg font-semibold text-text-primary">Incident Pilot Dashboard</h1>
+        <div className="flex flex-col items-center text-center">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-solid text-white shadow-card">
+            <Radar className="h-5 w-5" aria-hidden />
+          </div>
+          <h1 className="mt-3 text-lg font-semibold tracking-tight text-text-primary">Incident Pilot</h1>
           <p className="mt-1 text-sm text-text-secondary">Sign in to continue.</p>
         </div>
 
         {error && (
-          <div className="rounded-md border border-danger-bg bg-danger-bg px-3 py-2 text-sm text-danger-text">
+          <div className="rounded-lg border border-danger-bg bg-danger-bg px-3 py-2 text-sm text-danger-text">
             {error}
           </div>
         )}
@@ -66,7 +70,7 @@ export default function LoginPage() {
             required
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="w-full rounded-md border border-border bg-surface-1 px-3 py-2 text-sm text-text-primary"
+            className="w-full rounded-lg border border-border bg-surface-1 px-3 py-2 text-sm text-text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-solid/40"
           />
         </div>
 
@@ -82,14 +86,14 @@ export default function LoginPage() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-md border border-border bg-surface-1 px-3 py-2 text-sm text-text-primary"
+            className="w-full rounded-lg border border-border bg-surface-1 px-3 py-2 text-sm text-text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-solid/40"
           />
         </div>
 
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-md bg-accent-muted px-3 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+          className="w-full rounded-lg bg-accent-solid px-3 py-2 text-sm font-medium text-white shadow-card transition-colors hover:bg-accent-solid-hover disabled:opacity-50"
         >
           {submitting ? "Signing in…" : "Sign in"}
         </button>
