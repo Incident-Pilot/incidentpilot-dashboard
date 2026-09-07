@@ -1,5 +1,6 @@
 "use client";
 
+import { RefreshCw, Search } from "lucide-react";
 import type { Severity, IncidentStatus } from "@/types";
 
 export interface Filters {
@@ -27,7 +28,7 @@ export function FilterBar({
     <div className="flex flex-wrap items-center gap-3">
       <select
         aria-label="Filter by severity"
-        className="rounded-md border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary"
+        className="rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary shadow-card transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-solid/40"
         value={filters.severity}
         onChange={(e) => onChange({ ...filters, severity: e.target.value as Filters["severity"] })}
       >
@@ -40,7 +41,7 @@ export function FilterBar({
 
       <select
         aria-label="Filter by status"
-        className="rounded-md border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary"
+        className="rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary shadow-card transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-solid/40"
         value={filters.status}
         onChange={(e) => onChange({ ...filters, status: e.target.value as Filters["status"] })}
       >
@@ -50,20 +51,24 @@ export function FilterBar({
         <option value="closed">Closed</option>
       </select>
 
-      <input
-        type="text"
-        placeholder="Search incidents…"
-        aria-label="Search incidents"
-        className="min-w-[220px] flex-1 rounded-md border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
-        value={filters.search}
-        onChange={(e) => onChange({ ...filters, search: e.target.value })}
-      />
+      <div className="relative min-w-[220px] flex-1">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" aria-hidden />
+        <input
+          type="text"
+          placeholder="Search incidents…"
+          aria-label="Search incidents"
+          className="w-full rounded-lg border border-border bg-surface-2 py-2 pl-9 pr-3 text-sm text-text-primary shadow-card transition-colors placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-solid/40"
+          value={filters.search}
+          onChange={(e) => onChange({ ...filters, search: e.target.value })}
+        />
+      </div>
 
-      <label className="flex items-center gap-2 rounded-md border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary">
+      <label className="flex items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary shadow-card">
         <input
           type="checkbox"
           checked={filters.actionableOnly}
           onChange={(e) => onChange({ ...filters, actionableOnly: e.target.checked })}
+          className="accent-accent-solid"
         />
         Actionable only
       </label>
@@ -72,8 +77,9 @@ export function FilterBar({
         type="button"
         onClick={onRefresh}
         disabled={refreshing}
-        className="rounded-md border border-border bg-surface-2 px-3 py-2 text-sm font-medium text-text-primary hover:bg-surface-1 disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm font-medium text-text-primary shadow-card transition-colors hover:bg-surface-1 disabled:opacity-50"
       >
+        <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} aria-hidden />
         {refreshing ? "Refreshing…" : "Refresh"}
       </button>
     </div>

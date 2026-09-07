@@ -1,16 +1,30 @@
+import { CheckCircle2, Flame, Inbox, XCircle, Zap } from "lucide-react";
 import type { Incident } from "@/types";
 
-function StatCard({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  accent,
+}: {
+  label: string;
+  value: number;
+  icon: typeof Inbox;
+  accent?: boolean;
+}) {
   return (
-    <div className="rounded-lg border border-border bg-surface-2 px-4 py-3">
-      <div
-        className={`text-xs font-medium uppercase tracking-wide ${
-          accent ? "text-accent-muted" : "text-text-secondary"
-        }`}
-      >
-        {label}
+    <div className="rounded-xl border border-border bg-surface-2 px-4 py-3.5 shadow-card">
+      <div className="flex items-center justify-between">
+        <div
+          className={`text-xs font-medium uppercase tracking-wide ${
+            accent ? "text-accent-muted" : "text-text-secondary"
+          }`}
+        >
+          {label}
+        </div>
+        <Icon className={`h-4 w-4 ${accent ? "text-accent-solid" : "text-text-muted"}`} aria-hidden />
       </div>
-      <div className="mt-1 text-2xl font-semibold text-text-primary">{value}</div>
+      <div className="mt-1.5 text-2xl font-semibold tracking-tight text-text-primary">{value}</div>
     </div>
   );
 }
@@ -39,11 +53,11 @@ export function StatCards({
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-      <StatCard label="Open" value={open} accent />
-      <StatCard label="Resolved" value={resolved} />
-      <StatCard label="Closed" value={closed} />
-      <StatCard label="Critical" value={critical} />
-      <StatCard label="Actionable now" value={actionable} accent />
+      <StatCard label="Open" value={open} icon={Inbox} accent />
+      <StatCard label="Resolved" value={resolved} icon={CheckCircle2} />
+      <StatCard label="Closed" value={closed} icon={XCircle} />
+      <StatCard label="Critical" value={critical} icon={Flame} />
+      <StatCard label="Actionable now" value={actionable} icon={Zap} accent />
     </div>
   );
 }
